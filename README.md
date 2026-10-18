@@ -2,7 +2,11 @@
 
 A NestJS API for tire workshop inventory, purchases, sales, quotations, invoice documents, accounting exports and user administration. It uses PostgreSQL/Prisma, S3-compatible storage and Resend. The application interface and validation messages remain in Spanish. Tax catalogs, document interpretation and date handling currently target El Salvador; this is not a country-independent fiscal engine.
 
-This folder is an independent backend project. The matching frontend lives in `../front` in the local workspace; each folder can be published as its own repository. Sibling README links below refer to this local checkout; replace them with the matching repository URLs when publishing separately. All commands below run from the backend root unless stated otherwise. This project is licensed under AGPL-3.0-only; see [LICENSE](LICENSE). The bundled fonts retain their own license in `fonts/OFL.txt`.
+Use this API with the [WheelDesk frontend](https://github.com/josers77j/WheelDesk-frontend).
+
+Run all commands in this README from the backend repository root unless stated otherwise.
+
+This project is licensed under [AGPL-3.0-only](LICENSE). The bundled Roboto fonts retain their own [SIL Open Font License](fonts/OFL.txt).
 
 ## Requirements before installation
 
@@ -100,7 +104,7 @@ pnpm exec prisma db seed -- --help
 pnpm start:dev
 ```
 
-API base URL: `http://localhost:3000/api`. Development Swagger UI: `http://localhost:3000/api`. Start the frontend in a second terminal using its [README](../front/README.md), then sign in with `SEED_ADMIN_EMAIL` and the password used when generating the default hash.
+API base URL: `http://localhost:3000/api`. Development Swagger UI: `http://localhost:3000/api`. Start the frontend in a second terminal using its [README](https://github.com/josers77j/WheelDesk-frontend#readme), then sign in with `SEED_ADMIN_EMAIL` and the password used when generating the default hash.
 
 `FRONTEND_BASE_URL=http://localhost:4200` must match the browser's origin exactly. Use `localhost` consistently; do not switch one application to `127.0.0.1` while leaving CORS configured for `localhost`.
 
