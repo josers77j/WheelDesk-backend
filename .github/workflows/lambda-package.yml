@@ -1,0 +1,28 @@
+name: Package Lambda ZIP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      - name: Build and verify Linux x86_64 Lambda package
+        env:
+          BUILD_GIT_SHA: ${{ github.sha }}
+        run: |
+          docker buildx build --platform linux/amd64 -f Dockerfile.lambda --target artifact --build-arg BUILD_GIT_SHA="$BUILD_GIT_SHA" --output type=local,dest=lambda-artifact .
+          test -s lambda-artifact/tire-workshop-backend.zip
+      - name: Upload deployment ZIP
+        uses: actions/upload-artifact@v7
+        with:
+          name: lambda-package-${{ github.sha }}
+          path: lambda-artifact/tire-workshop-backend.zip
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0

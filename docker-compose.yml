@@ -1,0 +1,35 @@
+name: tire-shop-dev
+
+# Run Nest and Angular on the host; Compose supplies local infrastructure.
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-workshop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-workshop}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  s3:
+    image: floci/floci:latest
+    restart: unless-stopped
+    environment:
+      FLOCI_STORAGE_MODE: persistent
+      FLOCI_STORAGE_PERSISTENT_PATH: /app/data
+    ports:
+      - "127.0.0.1:${AWS_LOCAL_PORT:-4566}:4566"
+    volumes:
+      - s3-data:/app/data
+
+volumes:
+  postgres-data:
+  s3-data:

@@ -1,0 +1,7 @@
+export enum SaleOrderStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  REJECTED = 'REJECTED',
+  ANNULLED = 'ANNULLED',
+  CONTINGENCY = 'CONTINGENCY',
+}

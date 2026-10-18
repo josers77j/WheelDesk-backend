@@ -1,0 +1,41 @@
+service: tire-workshop-backend
+
+package:
+  artifact: .lambda-package/tire-workshop-backend.zip
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: dev
+  runtime: nodejs22.x
+  architecture: x86_64
+  memorySize: 1024
+  timeout: 30
+  logRetentionInDays: 7
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: ${env:DATABASE_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
+    REFRESH_TOKEN_PEPPER: ${env:REFRESH_TOKEN_PEPPER}
+    DEFAULT_PASSWORD_HASH: ${env:DEFAULT_PASSWORD_HASH}
+    COOKIE_SECRET_KEY: ${env:COOKIE_SECRET_KEY}
+    RESEND_API_KEY: ${env:RESEND_API_KEY}
+    MAIL_FROM: ${env:MAIL_FROM}
+    FRONTEND_BASE_URL: ${env:FRONTEND_BASE_URL}
+    AWS_S3_BUCKET_IMAGES: ${env:AWS_S3_BUCKET_IMAGES}
+    AWS_S3_BUCKET_DOCS: ${env:AWS_S3_BUCKET_DOCS}
+    AWS_S3_BUCKET_PURCHASES: ${env:AWS_S3_BUCKET_PURCHASES}
+
+  iam:
+    role: ${env:LAMBDA_EXECUTION_ROLE_ARN}
+
+functions:
+  main:
+    handler: dist/lambda.handler
+    events:
+      - httpApi:
+          method: ANY
+          path: /
+      - httpApi:
+          method: ANY
+          path: '/{proxy+}'

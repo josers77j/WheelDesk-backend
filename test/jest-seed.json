@@ -1,0 +1,22 @@
+{
+  "rootDir": "..",
+  "testRegex": "prisma/seeds/.*\\.spec\\.ts$",
+  "testEnvironment": "node",
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": {
+          "module": "commonjs",
+          "moduleResolution": "node",
+          "isolatedModules": true,
+          "resolvePackageJsonExports": false
+        }
+      }
+    ]
+  },
+  "roots": ["<rootDir>/prisma/seeds"],
+  "moduleNameMapper": {
+    "^(\\.{1,2}/.*)\\.js$": "$1"
+  }
+}

@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1.7
+
+# Match the operating system and Node runtime used by AWS Lambda.
+FROM public.ecr.aws/lambda/nodejs:22 AS builder
+WORKDIR /app
+ENV PNPM_HOME=/pnpm
+ENV PATH=/pnpm:$PATH
+RUN corepack enable && corepack prepare pnpm@10.13.1 --activate
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY tsconfig*.json nest-cli.json prisma.config.ts lambda.ts ./
+COPY prisma/schema.prisma ./prisma/schema.prisma
+COPY src ./src
+COPY fonts ./fonts
+COPY LICENSE ./LICENSE
+COPY scripts/write-build-version.mjs ./scripts/write-build-version.mjs
+COPY scripts/package-lambda.mjs ./scripts/package-lambda.mjs
+COPY scripts/lambda-runtime-smoke.cjs ./lambda-runtime-smoke.cjs
+
+# Generation needs a syntactically valid URL, but does not connect to a database.
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build pnpm exec prisma generate
+ARG BUILD_GIT_SHA=local
+RUN node scripts/write-build-version.mjs
+RUN pnpm run build
+# Lambda disables synchronous require of ESM; verify the same runtime policy.
+RUN node --no-experimental-require-module lambda-runtime-smoke.cjs
+RUN pnpm package:lambda
+
+FROM scratch AS artifact
+COPY --from=builder /app/.lambda-package/tire-workshop-backend.zip /tire-workshop-backend.zip

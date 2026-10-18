@@ -1,0 +1,23 @@
+# Only build inputs enter Docker; production secrets and local data stay outside.
+**
+!Dockerfile.lambda
+!Dockerfile.lambda.dockerignore
+!package.json
+!pnpm-lock.yaml
+!tsconfig*.json
+!nest-cli.json
+!prisma.config.ts
+!lambda.ts
+!prisma/
+!prisma/schema.prisma
+!src/
+!src/**
+!fonts/
+!fonts/**
+!scripts/
+!scripts/package-lambda.mjs
+!scripts/lambda-runtime-smoke.cjs
+
+!scripts/write-build-version.mjs
+
+!LICENSE

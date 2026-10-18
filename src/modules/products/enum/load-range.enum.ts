@@ -1,0 +1,4 @@
+export enum LOAD_RANGE {
+  REINFORCED = 'REINFORCED',
+  EXTRA_LOAD = 'EXTRA_LOAD',
+}

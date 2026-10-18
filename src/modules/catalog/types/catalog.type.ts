@@ -1,0 +1,17 @@
+export type CatalogType =
+  | 'economic-activity'
+  | 'tax-document-type'
+  | 'document-type'
+  | 'billing-model'
+  | 'transmission-type'
+  | 'contingency-type'
+  | 'establishment-type'
+  | 'item-type'
+  | 'unit-of-measure'
+  | 'tribute'
+  | 'operation-condition'
+  | 'payment-methode'
+  | 'payment-term'
+  | 'other-associated-document'
+  | 'contingency-document'
+  | 'invalidation-type';
