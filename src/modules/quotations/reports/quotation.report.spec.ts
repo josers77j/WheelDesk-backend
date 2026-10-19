@@ -59,6 +59,7 @@ describe('Quotation PDF', () => {
       nrc: null,
       phone: '00000000',
       email: 'example@example.com',
+      district: { municipality: { name: 'Ciudad de prueba' } },
     };
     const findFirst = jest.fn(
       (): Promise<typeof company> => Promise.resolve(company),
@@ -88,12 +89,28 @@ describe('Quotation PDF', () => {
     expect(JSON.stringify(render.mock.calls[0][0])).toContain(
       'Empresa de prueba',
     );
+    expect(JSON.stringify(render.mock.calls[0][0])).toContain(
+      'Ciudad de prueba',
+    );
+    expect(findFirst).toHaveBeenCalledWith({
+      select: {
+        legalName: true,
+        tradeName: true,
+        address: true,
+        nit: true,
+        nrc: true,
+        phone: true,
+        email: true,
+        district: { select: { municipality: { select: { name: true } } } },
+      },
+    });
     expect(result.filename).toBe('COT-000001.pdf');
   });
 
   it('preserves stored totals and product snapshot instead of recalculating', () => {
     const serialized = JSON.stringify(quotationReport(testQuotation));
-    expect(serialized).toContain('Total: $45.43');
+    expect(serialized).toContain('Total: ');
+    expect(serialized).toContain('$45.43');
     expect(serialized).toContain('$41.37');
     expect(serialized).not.toContain('$30.75');
     expect(serialized).toContain('Descripción guardada');
@@ -127,6 +144,27 @@ describe('Quotation PDF', () => {
     ])
       expect(serialized).toContain(label);
     expect(serialized).not.toContain('Comprobante de crédito fiscal');
+  });
+
+  it('prints the fiscal heading, numbered rows and borderless customer details', (): void => {
+    const definition = quotationReport({
+      ...testQuotation,
+      saleType: SaleType.TAX_CREDIT,
+      details: [
+        testQuotation.details[0],
+        { ...testQuotation.details[0], id: 77 },
+      ],
+    });
+    const serialized = JSON.stringify(definition);
+    expect(serialized).toContain('Comprobante de crédito fiscal');
+    expect(serialized).not.toContain('Cotización —');
+    expect(serialized).not.toContain('No constituye');
+    expect(serialized).toContain('"layout":"noBorders"');
+    expect(serialized).toContain('"text":"NIT: ","bold":true');
+    expect(serialized).toContain('"text":"1"');
+    expect(serialized).toContain('"text":"2"');
+    expect(serialized).toContain('"text":"#"');
+    expect(serialized).not.toContain('"text":"77"');
   });
 
   it('renders real PDF bytes with many rows', async () => {

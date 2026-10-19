@@ -23,6 +23,7 @@ export class QuotationDocumentsService {
         nrc: true,
         phone: true,
         email: true,
+        district: { select: { municipality: { select: { name: true } } } },
       },
     });
     const customer = quotation.customerId

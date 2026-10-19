@@ -15,6 +15,7 @@ export interface QuotationPrintContext {
     nrc: string | null;
     phone: string;
     email: string;
+    district?: { municipality: { name: string } } | null;
   } | null;
   customer?: {
     taxInfo: {
@@ -41,8 +42,16 @@ export function quotationReport(
     bold,
     margin: [3, 4, 3, 4],
   });
+  const labelled = (label: string, value: string): ContentText => ({
+    text: [{ text: label + ': ', bold: true }, { text: value }],
+  });
+  const labelCell = (label: string, value: string): ContentText => ({
+    ...labelled(label, value),
+    margin: [3, 4, 3, 4],
+  });
   const blank = '—';
-  const rows: Content[][] = quotation.details.map((item): Content[] => [
+  const rows: Content[][] = quotation.details.map((item, index): Content[] => [
+    cell(String(index + 1)),
     cell(String(item.quantity)),
     cell(item.productName),
     { ...cell(money(item.unitPrice)), alignment: 'right' },
@@ -68,14 +77,14 @@ export function quotationReport(
     },
   ]);
   const totals: Content[] = [
-    { text: `Subtotal: ${money(quotation.subtotal)}`, alignment: 'right' },
+    { ...labelled('Subtotal', money(quotation.subtotal)), alignment: 'right' },
     {
-      text: `Descuento global: ${money(quotation.globalDiscount)}`,
+      ...labelled('Descuento global', money(quotation.globalDiscount)),
       alignment: 'right',
     },
-    { text: `IVA: ${money(quotation.iva)}`, alignment: 'right' },
+    { ...labelled('IVA', money(quotation.iva)), alignment: 'right' },
     {
-      text: `Total: ${money(quotation.total)}`,
+      ...labelled('Total', money(quotation.total)),
       bold: true,
       fontSize: 12,
       alignment: 'right',
@@ -121,11 +130,9 @@ export function quotationReport(
                     ? [{ text: company.legalName }]
                     : []),
                   { text: company?.address || blank, margin: [0, 5, 0, 5] },
-                  {
-                    text: company
-                      ? `Tel.: ${company.phone} | ${company.email}`
-                      : blank,
-                  },
+                  { text: company?.district?.municipality.name || blank },
+                  labelled('Tel.', company?.phone || blank),
+                  labelled('Correo', company?.email || blank),
                 ],
                 alignment: 'center',
                 margin: [8, 12, 8, 12],
@@ -135,8 +142,8 @@ export function quotationReport(
                   {
                     text:
                       quotation.saleType === 'TAX_CREDIT'
-                        ? 'Cotización — Crédito fiscal'
-                        : 'Cotización — Consumidor final',
+                        ? 'Comprobante de crédito fiscal'
+                        : 'Consumidor final',
                     bold: true,
                     fontSize: 11,
                   },
@@ -146,9 +153,9 @@ export function quotationReport(
                     fontSize: 15,
                     margin: [0, 14, 0, 12],
                   },
-                  { text: `Registro No.: ${company?.nrc || blank}` },
+                  labelled('Registro No.', company?.nrc || blank),
                   {
-                    text: `NIT: ${company?.nit || blank}`,
+                    ...labelled('NIT', company?.nit || blank),
                     margin: [0, 4, 0, 0],
                   },
                 ],
@@ -158,56 +165,66 @@ export function quotationReport(
             ],
           ],
         },
-        margin: [0, 0, 0, 0],
+        margin: [0, 0, 0, 8],
       },
       {
+        layout: 'noBorders',
         table: {
           widths: ['*', '*'],
           body: [
             [
-              cell(
-                `Fecha: ${DateTime.fromJSDate(quotation.createdAt).setZone('America/El_Salvador').toFormat('dd/MM/yyyy')}`,
+              labelCell(
+                'Fecha',
+                `${DateTime.fromJSDate(quotation.createdAt).setZone('America/El_Salvador').toFormat('dd/MM/yyyy')}`,
               ),
-              cell(`Registro No.: ${customer?.taxInfo?.nrc || blank}`),
+              labelCell('Registro No.', customer?.taxInfo?.nrc || blank),
             ],
             [
-              cell(
-                `Señor: ${quotation.customerName || quotation.customer?.name || 'Sin cliente'}`,
+              labelCell(
+                'Señor',
+                quotation.customerName ||
+                  quotation.customer?.name ||
+                  'Sin cliente',
               ),
-              cell(
-                `Documento: ${customer?.taxInfo?.taxDocumentNumber || blank}`,
-              ),
-            ],
-            [
-              cell(`Dirección: ${quotation.customerAddress || blank}`),
-              cell(
-                `Giro: ${customer?.taxInfo?.economicActivity.name || blank}`,
+              labelCell(
+                'Documento',
+                customer?.taxInfo?.taxDocumentNumber || blank,
               ),
             ],
             [
-              cell(
-                `Municipio: ${customer?.district?.municipality.name || blank}`,
+              labelCell('Dirección', quotation.customerAddress || blank),
+              labelCell(
+                'Giro',
+                customer?.taxInfo?.economicActivity.name || blank,
               ),
-              cell('Condiciones de pago: —'),
             ],
             [
-              cell(
-                `Departamento: ${customer?.district?.municipality.department.name || blank}`,
+              labelCell(
+                'Municipio',
+                customer?.district?.municipality.name || blank,
               ),
-              cell('Nota de remisión: —'),
+              labelCell('Condiciones de pago', blank),
+            ],
+            [
+              labelCell(
+                'Departamento',
+                customer?.district?.municipality.department.name || blank,
+              ),
+              labelCell('Nota de remisión', blank),
             ],
           ],
         },
-        margin: [0, 0, 0, 0],
+        margin: [0, 0, 0, 8],
       },
       {
         table: {
           headerRows: 1,
           dontBreakRows: true,
           keepWithHeaderRows: 1,
-          widths: [30, '*', 60, 55, 50, 65],
+          widths: [18, 32, '*', 55, 50, 50, 60],
           body: [
             [
+              '#',
               'Cant.',
               'Descripción',
               'Precio unitario',
@@ -224,7 +241,7 @@ export function quotationReport(
             ...rows,
           ],
         },
-        margin: [0, 0, 0, 0],
+        margin: [0, 0, 0, 8],
       },
       {
         table: {
@@ -251,9 +268,9 @@ export function quotationReport(
             [
               {
                 stack: [
-                  cell('Nombre: __________________________'),
-                  cell('Documento: _______________________'),
-                  cell('Firma: ___________________________'),
+                  labelCell('Nombre', '__________________________'),
+                  labelCell('Documento', '_______________________'),
+                  labelCell('Firma', '___________________________'),
                   {
                     text: 'Entregado por',
                     alignment: 'center',
@@ -263,9 +280,9 @@ export function quotationReport(
               },
               {
                 stack: [
-                  cell('Nombre: __________________________'),
-                  cell('Documento: _______________________'),
-                  cell('Firma: ___________________________'),
+                  labelCell('Nombre', '__________________________'),
+                  labelCell('Documento', '_______________________'),
+                  labelCell('Firma', '___________________________'),
                   {
                     text: 'Recibido por',
                     alignment: 'center',
@@ -276,14 +293,8 @@ export function quotationReport(
             ],
           ],
         },
-        margin: [0, 14, 0, 0],
+        margin: [0, 8, 0, 0],
         unbreakable: true,
-      },
-      {
-        text: 'Cotización. No constituye comprobante fiscal ni reserva de inventario.',
-        fontSize: 8,
-        color: '#666666',
-        margin: [0, 10, 0, 0],
       },
     ],
   };
