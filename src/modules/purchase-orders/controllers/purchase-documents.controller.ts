@@ -14,6 +14,8 @@ import { UserRole } from '../../../../prisma/generated/prisma/client';
 import { PurchaseDocumentsService } from '../services/purchase-documents.service';
 import {
   PurchaseDocumentEmailDto,
+  PurchaseDocumentSelectionDto,
+  PurchaseDocumentBulkEmailDto,
   PurchaseDocumentZipDto,
 } from '../dto/purchase-documents.dto';
 const formats = { pdf: 'pdf', json: 'json' };
@@ -21,6 +23,18 @@ const formats = { pdf: 'pdf', json: 'json' };
 @Roles(UserRole.ADMIN)
 export class PurchaseDocumentsController {
   constructor(private readonly documents: PurchaseDocumentsService) {}
+  @Post('documents/selection')
+  selection(
+    @Body() dto: PurchaseDocumentSelectionDto,
+  ): ReturnType<PurchaseDocumentsService['selection']> {
+    return this.documents.selection(dto.ids);
+  }
+  @Post('documents/email')
+  emailSelection(
+    @Body() dto: PurchaseDocumentBulkEmailDto,
+  ): Promise<{ message: string }> {
+    return this.documents.emailSelection(dto);
+  }
   @Get(':id/document-files/:format')
   async file(
     @Param('id', ParseIntPipe) id: number,

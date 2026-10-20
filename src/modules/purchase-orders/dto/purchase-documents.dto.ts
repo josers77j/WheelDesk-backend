@@ -1,3 +1,4 @@
+import { IntersectionType, PickType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -34,10 +35,19 @@ export class PurchaseDocumentZipDto extends PurchaseDocumentFormatsDto {
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(20, {
-    message: 'Seleccione como máximo 20 compras por descarga.',
+    message: 'Seleccione como máximo 20 compras por operación.',
   })
   @ArrayUnique()
   @IsInt({ each: true })
   @IsPositive({ each: true })
   declare ids: number[];
 }
+
+export class PurchaseDocumentSelectionDto extends PickType(
+  PurchaseDocumentZipDto,
+  ['ids'] as const,
+) {}
+export class PurchaseDocumentBulkEmailDto extends IntersectionType(
+  PurchaseDocumentZipDto,
+  PurchaseDocumentEmailDto,
+) {}

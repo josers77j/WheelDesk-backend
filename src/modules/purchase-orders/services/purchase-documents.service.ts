@@ -11,6 +11,7 @@ import { PassThrough } from 'node:stream';
 import { basename } from 'node:path';
 import {
   PurchaseDocumentEmailDto,
+  PurchaseDocumentBulkEmailDto,
   PurchaseDocumentZipDto,
 } from '../dto/purchase-documents.dto';
 
@@ -29,6 +30,60 @@ export class PurchaseDocumentsService {
     private readonly storage: StorageService,
     private readonly mail: MailService,
   ) {}
+
+  async selection(ids: number[]): Promise<
+    {
+      id: number;
+      documentNumber: number;
+      sourceIdentity: string | null;
+      provider: string;
+      createdAt: Date;
+      pdf: boolean;
+      json: boolean;
+    }[]
+  > {
+    const orders = await this.prisma.purchaseOrder.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        documentNumber: true,
+        sourceIdentity: true,
+        createdAt: true,
+        provider: { select: { name: true } },
+        document: { select: { pdfKey: true, jsonKey: true } },
+      },
+    });
+    return orders.map((order) => ({
+      id: order.id,
+      documentNumber: order.documentNumber,
+      sourceIdentity: order.sourceIdentity,
+      provider: order.provider.name,
+      createdAt: order.createdAt,
+      pdf: !!order.document?.pdfKey,
+      json: !!order.document?.jsonKey,
+    }));
+  }
+
+  async emailSelection(
+    dto: PurchaseDocumentBulkEmailDto,
+  ): Promise<{ message: string }> {
+    const archive = await this.zip(dto);
+    await this.mail.sendInvoiceEmail({
+      to: dto.recipient,
+      subject: 'Documentos originales de compras',
+      html: '<p>Hola.</p><p>Se adjunta un ZIP con los documentos originales de las compras seleccionadas, organizados en una carpeta por compra. Si falta algún documento, se detalla dentro del ZIP.</p>',
+      attachments: [
+        {
+          filename: 'documentos-compras.zip',
+          content: archive,
+          contentType: 'application/zip',
+        },
+      ],
+    });
+    return {
+      message: 'Los documentos de compra se enviaron al correo indicado.',
+    };
+  }
 
   async file(id: number, format: Format): Promise<Original> {
     const order = await this.prisma.purchaseOrder.findUnique({
