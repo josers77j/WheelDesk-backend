@@ -19,6 +19,7 @@ jest.mock('helmet', () => {
 
 // Swagger mock
 jest.mock('@nestjs/swagger', () => ({
+  ...jest.requireActual<typeof import('@nestjs/swagger')>('@nestjs/swagger'),
   DocumentBuilder: jest.fn().mockReturnValue({
     setTitle: jest.fn().mockReturnThis(),
     setDescription: jest.fn().mockReturnThis(),
