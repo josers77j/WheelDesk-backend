@@ -414,6 +414,19 @@ describe('PurchaseOrdersService', () => {
   });
 
   describe('findAll', () => {
+    it('searches the complete invoice identity without matching the supplier NIT prefix', async (): Promise<void> => {
+      await service.findAll({
+        page: 1,
+        limit: 10,
+        documentNumber: ' ABC-123 ',
+      });
+      const [args] =
+        purchaseOrderRepositoryMock.getAllPurchaseOrders.mock.calls[0];
+      expect(args.where?.OR).toEqual([
+        { sourceIdentity: { equals: 'ABC-123', mode: 'insensitive' } },
+        { sourceIdentity: { endsWith: ':ABC-123', mode: 'insensitive' } },
+      ]);
+    });
     it('retorna lista paginada de órdenes de compra', async () => {
       const filterDto: FilterPaginationDto = {
         page: 1,

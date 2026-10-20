@@ -1,6 +1,12 @@
 import { PartialType } from '@nestjs/swagger';
 import { PaginationDto } from '../../../common/dtos/pagination.dto';
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 import { Type } from 'class-transformer';
 
@@ -18,7 +24,12 @@ export class FilterPaginationDto extends PartialType(PaginationDto) {
   @IsOptional()
   status?: PURCHASE_ORDER_STATUS;
 
-  @IsString({ message: 'El campo «Número de documento» debe ser texto.' })
+  @IsString({
+    message: 'El número de orden o código de factura debe ser texto.',
+  })
+  @MaxLength(200, {
+    message: 'El número de orden o código de factura es demasiado largo.',
+  })
   @IsOptional()
   documentNumber!: string;
 }

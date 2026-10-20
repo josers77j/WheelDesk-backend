@@ -189,10 +189,16 @@ export class PurchaseOrdersService {
       where.status = status;
     }
 
-    if (documentNumber && !Number.isNaN(+documentNumber)) {
-      where.documentNumber = {
-        equals: +documentNumber,
-      };
+    const term = documentNumber?.trim();
+    if (term) {
+      if (/^\d+$/.test(term) && Number(term) <= 2147483647) {
+        where.documentNumber = { equals: Number(term) };
+      } else {
+        where.OR = [
+          { sourceIdentity: { equals: term, mode: 'insensitive' } },
+          { sourceIdentity: { endsWith: ':' + term, mode: 'insensitive' } },
+        ];
+      }
     }
 
     const dateRangeFilter = buildDateRange(from, to);
