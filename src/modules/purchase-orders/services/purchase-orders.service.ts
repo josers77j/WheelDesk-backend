@@ -170,9 +170,9 @@ export class PurchaseOrdersService {
       documentNumber: 'desc',
     };
     const where: Prisma.PurchaseOrderWhereInput = {};
-    // Listado lean: la tabla pinta documento, proveedor, total, fecha y
-    // estado (detalles y creador van por GET :id bajo demanda).
+    // Keep attachment content and source snapshots out of the lean list.
     const include: Prisma.PurchaseOrderInclude = {
+      document: { select: { pdfKey: true, jsonKey: true } },
       provider: {
         select: {
           name: true,

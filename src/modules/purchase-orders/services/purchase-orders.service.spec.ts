@@ -454,6 +454,11 @@ describe('PurchaseOrdersService', () => {
         purchaseOrderRepositoryMock.getAllPurchaseOrders,
       ).toHaveBeenCalled();
       expect(result).toEqual(mockResponse);
+      const [args] =
+        purchaseOrderRepositoryMock.getAllPurchaseOrders.mock.calls[0];
+      expect(args.include?.document).toEqual({
+        select: { pdfKey: true, jsonKey: true },
+      });
     });
 
     it('filtra por providerId cuando se proporciona', async () => {
